@@ -248,7 +248,7 @@ func createAndReadFile(t *testing.T, file string, content []byte, expectedLength
 		let binArg = "%s";
 		export let data = open("/path/to/%s", binArg);
 		var expectedLength = %d;
-		var len = binArg === "b" ? "byteLength" : "length";
+		var len = binArg === "ab" ? "byteLength" : "length";
 		if (data[len] != expectedLength) {
 			throw new Error("Length not equal, expected: " + expectedLength + ", actual: " + data[len]);
 		}
@@ -282,9 +282,7 @@ func TestInitContextOpen(t *testing.T) {
 		tc := tc
 		t.Run(tc.file, func(t *testing.T) {
 			bi, err := createAndReadFile(t, tc.file, tc.content, tc.length, "")
-			if !assert.NoError(t, err) {
-				return
-			}
+			require.NoError(t, err)
 			assert.Equal(t, string(tc.content), bi.Runtime.Get("data").Export())
 		})
 	}
@@ -294,8 +292,22 @@ func TestInitContextOpen(t *testing.T) {
 		if !assert.NoError(t, err) {
 			return
 		}
+		bytes := []byte{104, 105, 33, 15, 255, 1}
+		assert.Equal(t, bytes, bi.Runtime.Get("data").Export())
+	})
+
+	t.Run("ArrayBuffer", func(t *testing.T) {
+		bi, err := createAndReadFile(t, "/path/to/file.bin", []byte("hi!\x0f\xff\x01"), 6, "ab")
+		require.NoError(t, err)
 		buf := bi.Runtime.NewArrayBuffer([]byte{104, 105, 33, 15, 255, 1})
 		assert.Equal(t, buf, bi.Runtime.Get("data").Export())
+	})
+
+	t.Run("Unsupported", func(t *testing.T) {
+		fs := afero.NewMemMapFs()
+		assert.NoError(t, afero.WriteFile(fs, "/somefile", []byte("hi!"), 0o644))
+		_, err := getSimpleBundle(t, "/script.js", "open('/somefile', 'blah')", fs)
+		assert.Contains(t, err.Error(), "unsupported open() mode: blah")
 	})
 
 	testdata := map[string]string{

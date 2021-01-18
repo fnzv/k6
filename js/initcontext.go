@@ -205,8 +205,9 @@ func (i *InitContext) compileImport(src, filename string) (*goja.Program, error)
 }
 
 // Open implements open() in the init context and will read and return the
-// contents of a file. If the second argument is "b" it returns an ArrayBuffer
-// instance, otherwise a string representation.
+// contents of a file. If the second argument is "b" it returns []byte,
+// if it's "ab" it returns an ArrayBuffer, and if unspecified it returns a
+// string representation.
 func (i *InitContext) Open(ctx context.Context, filename string, args ...string) (interface{}, error) {
 	if lib.GetState(ctx) != nil {
 		return nil, errors.New(openCantBeUsedOutsideInitContextMsg)
@@ -239,9 +240,16 @@ func (i *InitContext) Open(ctx context.Context, filename string, args ...string)
 		return nil, err
 	}
 
-	if len(args) > 0 && args[0] == "b" {
-		b := i.runtime.NewArrayBuffer(data)
-		return &b, nil
+	if len(args) > 0 && len(args[0]) > 0 {
+		switch args[0] {
+		case "b":
+			return i.runtime.ToValue(data), nil
+		case "ab":
+			b := i.runtime.NewArrayBuffer(data)
+			return &b, nil
+		default:
+			return nil, fmt.Errorf("unsupported open() mode: %s", args[0])
+		}
 	}
 	return i.runtime.ToValue(string(data)), nil
 }
