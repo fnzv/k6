@@ -1730,6 +1730,12 @@ func TestResponseTypes(t *testing.T) {
 			}
 		}
 		http.post("HTTPBIN_URL/compare-bin", respBin);
+
+		// Check ArrayBuffer response
+		var respBin = http.get("HTTPBIN_URL/get-bin", { responseType: "arrayBuffer" }).body;
+		if (respBin.byteLength !== expBinLength) {
+			throw new Error("response body length should be '" + expBinLength + "' but was '" + respBin.byteLength + "'");
+		}
 	`))
 	assert.NoError(t, err)
 

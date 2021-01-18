@@ -24,7 +24,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"compress/zlib"
-	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -34,7 +33,6 @@ import (
 	"github.com/andybalholm/brotli"
 	"github.com/klauspost/compress/zstd"
 
-	"github.com/loadimpact/k6/js/common"
 	"github.com/loadimpact/k6/lib"
 )
 
@@ -138,7 +136,6 @@ func wrapDecompressionError(err error) error {
 }
 
 func readResponseBody(
-	ctx context.Context,
 	state *lib.State,
 	respType ResponseType,
 	resp *http.Response,
@@ -212,15 +209,14 @@ func readResponseBody(
 	switch respType {
 	case ResponseTypeText:
 		result = buf.String()
-	case ResponseTypeBinary:
+	case ResponseTypeBinary, ResponseTypeArrayBuffer:
 		// Copy the data to a new slice before we return the buffer to the pool,
 		// because buf.Bytes() points to the underlying buffer byte slice.
+		// The ArrayBuffer conversion will be done in the js/modules/k6/http
+		// package to avoid a reverse dependency, since it depends on goja.
 		binData := make([]byte, buf.Len())
 		copy(binData, buf.Bytes())
 		result = binData
-	case ResponseTypeArrayBuffer:
-		rt := common.GetRuntime(ctx)
-		result = rt.NewArrayBuffer(buf.Bytes())
 	default:
 		respErr = fmt.Errorf("unknown responseType %s", respType)
 	}

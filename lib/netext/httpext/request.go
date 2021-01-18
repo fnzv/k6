@@ -319,7 +319,7 @@ func MakeRequest(ctx context.Context, preq *ParsedHTTPRequest) (*Response, error
 		return nil, fmt.Errorf("unsupported response status: %s", res.Status)
 	}
 
-	resp.Body, resErr = readResponseBody(ctx, state, preq.ResponseType, res, resErr)
+	resp.Body, resErr = readResponseBody(state, preq.ResponseType, res, resErr)
 	finishedReq := tracerTransport.processLastSavedRequest(wrapDecompressionError(resErr))
 	if finishedReq != nil {
 		updateK6Response(resp, finishedReq)
