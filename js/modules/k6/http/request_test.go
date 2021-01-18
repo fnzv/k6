@@ -1736,6 +1736,21 @@ func TestResponseTypes(t *testing.T) {
 		if (respBin.byteLength !== expBinLength) {
 			throw new Error("response body length should be '" + expBinLength + "' but was '" + respBin.byteLength + "'");
 		}
+
+		// Check ArrayBuffer responses with http.batch()
+		var responses = http.batch([
+			["GET", "HTTPBIN_URL/get-bin", null, { responseType: "arrayBuffer" }],
+			["GET", "HTTPBIN_URL/get-bin", null, { responseType: "arrayBuffer" }],
+		]);
+		if (responses.length != 2) {
+			throw new Error("expected 2 responses, received " + responses.length);
+		}
+		for (var i = 0; i < responses.length; i++) {
+			if (responses[i].body.byteLength !== expBinLength) {
+				throw new Error("response body length should be '"
+					+ expBinLength + "' but was '" + responses[i].body.byteLength + "'");
+			}
+		}
 	`))
 	assert.NoError(t, err)
 
