@@ -24,6 +24,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"compress/zlib"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -33,6 +34,7 @@ import (
 	"github.com/andybalholm/brotli"
 	"github.com/klauspost/compress/zstd"
 
+	"github.com/loadimpact/k6/js/common"
 	"github.com/loadimpact/k6/lib"
 )
 
@@ -136,6 +138,7 @@ func wrapDecompressionError(err error) error {
 }
 
 func readResponseBody(
+	ctx context.Context,
 	state *lib.State,
 	respType ResponseType,
 	resp *http.Response,
@@ -215,6 +218,9 @@ func readResponseBody(
 		binData := make([]byte, buf.Len())
 		copy(binData, buf.Bytes())
 		result = binData
+	case ResponseTypeArrayBuffer:
+		rt := common.GetRuntime(ctx)
+		result = rt.NewArrayBuffer(buf.Bytes())
 	default:
 		respErr = fmt.Errorf("unknown responseType %s", respType)
 	}

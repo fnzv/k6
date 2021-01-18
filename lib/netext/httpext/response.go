@@ -35,7 +35,7 @@ import (
 // ResponseType is used in the request to specify how the response body should be treated
 // The conversion and validation methods are auto-generated with https://github.com/alvaroloes/enumer:
 //nolint: lll
-//go:generate enumer -type=ResponseType -transform=snake -json -text -trimprefix ResponseType -output response_type_gen.go
+//go:generate enumer -type=ResponseType -transform=title-lower -json -text -trimprefix ResponseType -output response_type_gen.go
 type ResponseType uint
 
 const (
@@ -49,6 +49,10 @@ const (
 	// ResponseTypeBinary causes k6 to return the response body as a []byte, suitable
 	// for working with binary files without lost data and needless string conversions.
 	ResponseTypeBinary
+	// ResponseTypeArrayBuffer causes k6 to return the response body as an
+	// ArrayBuffer, which makes it more convenient and efficient to work with
+	// than []byte.
+	ResponseTypeArrayBuffer
 	// ResponseTypeNone causes k6 to fully read the response body while immediately
 	// discarding the actual data - k6 would set the body of the returned HTTPResponse
 	// to null. This saves CPU and memory and is suitable for HTTP requests that we just
