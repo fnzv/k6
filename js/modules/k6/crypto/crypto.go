@@ -46,19 +46,6 @@ func init() {
 	modules.Register("k6/crypto", New())
 }
 
-func toBytes(data interface{}) []byte {
-	var d []byte
-	switch dt := data.(type) {
-	case string:
-		d = []byte(dt)
-	case []byte:
-		d = dt
-	case goja.ArrayBuffer:
-		d = dt.Bytes()
-	}
-	return d
-}
-
 type Crypto struct{}
 
 type Hasher struct {
@@ -170,7 +157,11 @@ func (*Crypto) CreateHash(ctx context.Context, algorithm string) *Hasher {
 
 // Update the hash with the input data.
 func (hasher *Hasher) Update(input interface{}) {
-	_, err := hasher.hash.Write(toBytes(input))
+	d, err := common.ToBytes(input)
+	if err != nil {
+		common.Throw(common.GetRuntime(hasher.ctx), err)
+	}
+	_, err = hasher.hash.Write(d)
 	if err != nil {
 		common.Throw(common.GetRuntime(hasher.ctx), err)
 	}
@@ -206,15 +197,22 @@ func (hasher *Hasher) Digest(outputEncoding string) interface{} {
 }
 
 // HexEncode returns a string with the hex representation of the provided byte array
-func (c Crypto) HexEncode(_ context.Context, data interface{}) string {
-	return hex.EncodeToString(toBytes(data))
+func (c Crypto) HexEncode(ctx context.Context, data interface{}) string {
+	d, err := common.ToBytes(data)
+	if err != nil {
+		common.Throw(common.GetRuntime(ctx), err)
+	}
+	return hex.EncodeToString(d)
 }
 
 // CreateHMAC returns a new HMAC hash using the given algorithm and key.
 func (c Crypto) CreateHMAC(ctx context.Context, algorithm string, key interface{}) *Hasher {
 	hasher := Hasher{}
 	hasher.ctx = ctx
-	kb := toBytes(key)
+	kb, err := common.ToBytes(key)
+	if err != nil {
+		common.Throw(common.GetRuntime(hasher.ctx), err)
+	}
 
 	switch algorithm {
 	case "md4":
