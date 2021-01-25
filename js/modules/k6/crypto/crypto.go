@@ -71,6 +71,7 @@ func New() *Crypto {
 	return &Crypto{}
 }
 
+// RandomBytes returns an ArrayBuffer with random data of given size.
 func (*Crypto) RandomBytes(ctx context.Context, size int) *goja.ArrayBuffer {
 	rt := common.GetRuntime(ctx)
 	if size < 1 {
@@ -167,6 +168,7 @@ func (*Crypto) CreateHash(ctx context.Context, algorithm string) *Hasher {
 	return &hasher
 }
 
+// Update the hash with the input data.
 func (hasher *Hasher) Update(input interface{}) {
 	_, err := hasher.hash.Write(toBytes(input))
 	if err != nil {
@@ -208,6 +210,7 @@ func (c Crypto) HexEncode(_ context.Context, data interface{}) string {
 	return hex.EncodeToString(toBytes(data))
 }
 
+// CreateHMAC returns a new HMAC hash using the given algorithm and key.
 func (c Crypto) CreateHMAC(ctx context.Context, algorithm string, key interface{}) *Hasher {
 	hasher := Hasher{}
 	hasher.ctx = ctx
