@@ -264,7 +264,7 @@ func TestOutputEncoding(t *testing.T) {
 		var correctBase64 = "XrY7u+Ae7tCTyyK7j1rNww==";
 		var correctBase64URL = "XrY7u-Ae7tCTyyK7j1rNww=="
 		var correctBase64RawURL = "XrY7u-Ae7tCTyyK7j1rNww";
-		var correctBinary = [94,182,59,187,224,30,238,208,147,203,34,187,143,90,205,195];
+		var correctBinary = new Uint8Array([94,182,59,187,224,30,238,208,147,203,34,187,143,90,205,195]);
 
 		var hasher = crypto.createHash("md5");
 		hasher.update("hello world");
@@ -301,8 +301,8 @@ func TestOutputEncoding(t *testing.T) {
 		  return true;
 		}
 
-		var resultBinary = hasher.digest("binary");
-		if (!arraysEqual(resultBinary,  correctBinary)) {
+		var resultBinary = new Uint8Array(hasher.digest("binary"));
+		if (!arraysEqual(resultBinary, correctBinary)) {
 			throw new Error("Binary encoding mismatch: " + JSON.stringify(resultBinary));
 		}
 		`)
@@ -421,7 +421,7 @@ func TestAWSv4(t *testing.T) {
 	_, err := common.RunString(rt, `
 		var HexEncode = crypto.hexEncode;
 		var HmacSHA256 = function(data, key) {
-			return crypto.hmac("sha256",key, data, "binary");
+			return crypto.hmac("sha256", key, data, "binary");
 		};
 
 		var expectedKDate    = '969fbb94feb542b71ede6f87fe4d5fa29c789342b0f407474670f0c2489e0a0d'
