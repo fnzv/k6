@@ -24,6 +24,8 @@ import (
 	"context"
 	"encoding/base64"
 
+	"github.com/dop251/goja"
+
 	"github.com/loadimpact/k6/js/common"
 	"github.com/loadimpact/k6/js/internal/modules"
 )
@@ -38,26 +40,37 @@ func New() *Encoding {
 	return &Encoding{}
 }
 
-func (e *Encoding) B64encode(ctx context.Context, input []byte, encoding string) string {
+// B64encode returns the base64 encoding of input as a string.
+// The data type of input can be a string, []byte or ArrayBuffer.
+func (e *Encoding) B64encode(ctx context.Context, input interface{}, encoding string) string {
+	data, err := common.ToBytes(input)
+	if err != nil {
+		common.Throw(common.GetRuntime(ctx), err)
+	}
 	switch encoding {
 	case "rawstd":
-		return base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(input)
+		return base64.StdEncoding.WithPadding(base64.NoPadding).EncodeToString(data)
 	case "std":
-		return base64.StdEncoding.EncodeToString(input)
+		return base64.StdEncoding.EncodeToString(data)
 	case "rawurl":
-		return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(input)
+		return base64.URLEncoding.WithPadding(base64.NoPadding).EncodeToString(data)
 	case "url":
-		return base64.URLEncoding.EncodeToString(input)
+		return base64.URLEncoding.EncodeToString(data)
 	default:
-		return base64.StdEncoding.EncodeToString(input)
+		return base64.StdEncoding.EncodeToString(data)
 	}
 }
 
-func (e *Encoding) B64decode(ctx context.Context, input string, encoding string) string {
-	var output []byte
-	var err error
+// B64decode returns the decoded data of the base64 encoded input string in the
+// given format, wrapped in an ArrayBuffer.
+func (e *Encoding) B64decode(ctx context.Context, input, format string) *goja.ArrayBuffer {
+	var (
+		output []byte
+		err    error
+		rt     = common.GetRuntime(ctx)
+	)
 
-	switch encoding {
+	switch format {
 	case "rawstd":
 		output, err = base64.StdEncoding.WithPadding(base64.NoPadding).DecodeString(input)
 	case "std":
@@ -71,8 +84,9 @@ func (e *Encoding) B64decode(ctx context.Context, input string, encoding string)
 	}
 
 	if err != nil {
-		common.Throw(common.GetRuntime(ctx), err)
+		common.Throw(rt, err)
 	}
 
-	return string(output)
+	ab := rt.NewArrayBuffer(output)
+	return &ab
 }

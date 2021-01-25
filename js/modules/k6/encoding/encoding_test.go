@@ -55,8 +55,19 @@ func TestEncodingAlgorithms(t *testing.T) {
 			_, err := common.RunString(rt, `
 			var correct = "hello world";
 			var decoded = encoding.b64decode("aGVsbG8gd29ybGQ=");
-			if (decoded !== correct) {
-				throw new Error("Decoding mismatch: " + decoded);
+			var decStr = String.fromCharCode.apply(null, new Uint8Array(decoded));
+			if (decStr !== correct) {
+				throw new Error("Decoding mismatch: " + decStr);
+			}`)
+			assert.NoError(t, err)
+		})
+		t.Run("DefaultArrayBufferEnc", func(t *testing.T) {
+			_, err := common.RunString(rt, `
+			var exp = "aGVsbG8=";
+			var input = new Uint8Array([104, 101, 108, 108, 111]); // "hello"
+			var encoded = encoding.b64encode(input.buffer);
+			if (encoded !== exp) {
+				throw new Error("Encoding mismatch: " + encoded);
 			}`)
 			assert.NoError(t, err)
 		})
@@ -73,8 +84,10 @@ func TestEncodingAlgorithms(t *testing.T) {
 			_, err := common.RunString(rt, `
 			var correct = "こんにちは世界";
 			var decoded = encoding.b64decode("44GT44KT44Gr44Gh44Gv5LiW55WM");
-			if (decoded !== correct) {
-				throw new Error("Decoding mismatch: " + decoded);
+			var decStr = String.fromCharCode.apply(null, new Uint8Array(decoded));
+			var decStrUtf8 = decodeURIComponent(escape(decStr));
+			if (decStrUtf8 !== correct) {
+				throw new Error("Encoding mismatch: " + decStr);
 			}`)
 			assert.NoError(t, err)
 		})
@@ -91,8 +104,10 @@ func TestEncodingAlgorithms(t *testing.T) {
 			_, err := common.RunString(rt, `
 			var correct = "hello world";
 			var decoded = encoding.b64decode("aGVsbG8gd29ybGQ=", "std");
-			if (decoded !== correct) {
-				throw new Error("Decoding mismatch: " + decoded);
+			var decStr = String.fromCharCode.apply(null, new Uint8Array(decoded));
+			var decStrUtf8 = decodeURIComponent(escape(decStr));
+			if (decStrUtf8 !== correct) {
+				throw new Error("Decoding mismatch: " + decStrUtf8);
 			}`)
 			assert.NoError(t, err)
 		})
@@ -109,8 +124,10 @@ func TestEncodingAlgorithms(t *testing.T) {
 			_, err := common.RunString(rt, `
 			var correct = "hello world";
 			var decoded = encoding.b64decode("aGVsbG8gd29ybGQ", "rawstd");
-			if (decoded !== correct) {
-				throw new Error("Decoding mismatch: " + decoded);
+			var decStr = String.fromCharCode.apply(null, new Uint8Array(decoded));
+			var decStrUtf8 = decodeURIComponent(escape(decStr));
+			if (decStrUtf8 !== correct) {
+				throw new Error("Decoding mismatch: " + decStrUtf8);
 			}`)
 			assert.NoError(t, err)
 		})
@@ -127,8 +144,10 @@ func TestEncodingAlgorithms(t *testing.T) {
 			_, err := common.RunString(rt, `
 			var correct = "小飼弾..";
 			var decoded = encoding.b64decode("5bCP6aO85by-Li4=", "url");
-			if (decoded !== correct) {
-				throw new Error("Decoding mismatch: " + decoded);
+			var decStr = String.fromCharCode.apply(null, new Uint8Array(decoded));
+			var decStrUtf8 = decodeURIComponent(escape(decStr));
+			if (decStrUtf8 !== correct) {
+				throw new Error("Decoding mismatch: " + decStrUtf8);
 			}`)
 			assert.NoError(t, err)
 		})
@@ -145,8 +164,10 @@ func TestEncodingAlgorithms(t *testing.T) {
 			_, err := common.RunString(rt, `
 			var correct = "小飼弾..";
 			var decoded = encoding.b64decode("5bCP6aO85by-Li4", "rawurl");
-			if (decoded !== correct) {
-				throw new Error("Decoding mismatch: " + decoded);
+			var decStr = String.fromCharCode.apply(null, new Uint8Array(decoded));
+			var decStrUtf8 = decodeURIComponent(escape(decStr));
+			if (decStrUtf8 !== correct) {
+				throw new Error("Decoding mismatch: " + decStrUtf8);
 			}`)
 			assert.NoError(t, err)
 		})
